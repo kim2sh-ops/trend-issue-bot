@@ -77,6 +77,34 @@ async function issueFrame(issue, rank) {
   );
 }
 
+// 스토리용 티저 이미지 1장 (피드 카드뉴스로 유도)
+async function storyFrame(draft) {
+  const uri = draft.coverImage ? await dataUri(draft.coverImage) : null;
+  const teaser = wrap(displaySafe(draft.issues?.[0]?.headline), 16, 2, "");
+  return shell(
+    `<text x="${M}" y="720" font-family="${T.body}" font-weight="800" font-size="32" letter-spacing="8" fill="${T.accent}">NEW · ${esc(draft.date ?? "")}</text>
+<text x="${M}" y="870" font-family="${T.displayStack}" font-size="118" fill="${T.ink}">오늘의</text>
+<text x="${M}" y="1000" font-family="${T.displayStack}" font-size="118" fill="${T.ink}">소비 트렌드</text>
+<text x="${M}" y="1160" font-family="${T.displayStack}" font-size="168" fill="${T.accent}">이슈 5</text>
+<text x="${M}" y="1290" font-family="${T.body}" font-weight="700" font-size="36" fill="${T.ink}">${tspans(teaser, M, 50)}</text>
+<text x="${M}" y="1470" font-family="${T.body}" font-weight="800" font-size="34" fill="${T.sub}">새 카드뉴스 → 피드에서 전체 보기</text>`,
+    uri
+  );
+}
+
+export async function renderStory(draft, outDir) {
+  await mkdir(outDir, { recursive: true });
+  const png = new Resvg(await storyFrame(draft), {
+    font: { fontFiles: FONT_FILES, loadSystemFonts: false, defaultFontFamily: T.body },
+    fitTo: { mode: "width", value: REEL.w },
+  })
+    .render()
+    .asPng();
+  const p = join(outDir, "story.png");
+  await writeFile(p, png);
+  return p;
+}
+
 export async function renderReelFrames(draft, outDir) {
   await mkdir(outDir, { recursive: true });
   const issues = (draft.issues ?? []).slice(0, 5);

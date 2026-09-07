@@ -86,6 +86,13 @@ export async function renderReel(cardPaths, outDir) {
   return out;
 }
 
+// PNG → JPEG (인스타 이미지 업로드는 JPEG 만 받음)
+export async function toJpeg(pngPath) {
+  const out = pngPath.replace(/\.png$/i, ".jpg");
+  await run(ffmpegPath, ["-y", "-i", pngPath, "-qscale:v", "3", out]);
+  return out;
+}
+
 function run(bin, args) {
   return new Promise((resolve, reject) => {
     const p = spawn(bin, args, { stdio: ["ignore", "ignore", "pipe"] });

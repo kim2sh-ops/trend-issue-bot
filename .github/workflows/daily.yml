@@ -3,7 +3,10 @@ name: daily-draft
 on:
   schedule:
     - cron: "0 10 * * *" # 매일 19:00 KST (10:00 UTC)
-  workflow_dispatch: {} # 수동 실행 버튼
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
 
 jobs:
   draft:
@@ -23,3 +26,25 @@ jobs:
           IG_HANDLE: ${{ secrets.IG_HANDLE }}
           PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
           CLAUDE_MODEL: claude-haiku-4-5
+          PAGES_BASE: https://kim2sh-ops.github.io/trend-issue-bot
+
+      - name: 에셋 스테이징
+        id: stage
+        run: |
+          DATE=$(TZ=Asia/Seoul date +%F)
+          mkdir -p public/$DATE
+          cp out/$DATE/card-*.jpg out/$DATE/story.jpg out/$DATE/reel.mp4 public/$DATE/
+          echo "date=$DATE" >> "$GITHUB_OUTPUT"
+
+      - name: gh-pages 배포
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
+          keep_files: true # ponytail: 날짜별로 계속 쌓임(~1.4MB/일). 신경 쓰이면 gh-pages 브랜치 주기적으로 비우기
+
+      - name: 발행 대기 상태 커밋
+        run: |
+          git add state/pending.json
+          git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -m "발행 대기: ${{ steps.stage.outputs.date }}" || echo "변경 없음"
+          git push

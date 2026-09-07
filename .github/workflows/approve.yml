@@ -1,0 +1,35 @@
+name: approve-publish
+
+on:
+  schedule:
+    - cron: "*/10 * * * *" # 10분마다 "합격" 답장 확인
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency: approve-publish # 겹쳐 실행 방지
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      # approve.mjs 는 외부 의존성 없음 (native fetch) → npm ci 생략
+      - id: pub
+        run: node src/approve.mjs
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+
+      - name: 발행 완료 → 대기 상태 삭제
+        if: steps.pub.outputs.published == 'true'
+        run: |
+          git rm -f state/pending.json
+          git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -m "게시 완료: ${{ steps.pub.outputs.date }}"
+          git push
