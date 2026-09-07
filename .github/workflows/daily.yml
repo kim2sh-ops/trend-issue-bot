@@ -1,0 +1,23 @@
+name: daily-draft
+
+on:
+  schedule:
+    - cron: "0 10 * * *" # 매일 19:00 KST (10:00 UTC)
+  workflow_dispatch: {} # 수동 실행 버튼
+
+jobs:
+  draft:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - run: npm test
+      - run: node src/run.mjs
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          CLAUDE_MODEL: claude-haiku-4-5
