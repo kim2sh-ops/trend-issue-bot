@@ -21,4 +21,5 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           IG_HANDLE: ${{ secrets.IG_HANDLE }}
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
           CLAUDE_MODEL: claude-haiku-4-5
