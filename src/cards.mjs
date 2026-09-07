@@ -63,7 +63,7 @@ ${bodyInner}
 </svg>`;
 }
 
-async function issueSvg(issue, rank, draft, isLast) {
+async function issueSvg(issue, rank, draft) {
   const uri = issue.image ? await dataUri(issue.image) : null;
   const head = wrap(displaySafe(issue.headline), 17, 3, "");
 
@@ -93,12 +93,11 @@ async function issueSvg(issue, rank, draft, isLast) {
 
   const src = (issue.sources ?? []).join(", ") || "출처 미상";
   const srcY = Math.min(Math.max(y + 30, 1150), 1198);
-  const footer = isLast
-    ? `<text x="${M}" y="1262" font-family="${T.body}" font-weight="800" font-size="28" fill="${T.ink}">저장하고 팔로우 <tspan fill="${T.accent}">${esc(IG_HANDLE)}</tspan></text>`
-    : rank === 1
-    ? `<text x="${M}" y="1262" font-family="${T.body}" font-weight="800" font-size="28" fill="${T.accent}">→ 5개 다 넘겨보기</text>
-       <text x="${CARD.w - M}" y="1262" text-anchor="end" font-family="${T.body}" font-weight="800" font-size="25" fill="${T.sub}">${esc(IG_HANDLE)}</text>`
-    : `<text x="${CARD.w - M}" y="1262" text-anchor="end" font-family="${T.body}" font-weight="800" font-size="25" fill="${T.sub}">${esc(IG_HANDLE)}</text>`;
+  const handle = `<text x="${CARD.w - M}" y="1262" text-anchor="end" font-family="${T.body}" font-weight="800" font-size="25" fill="${T.sub}">${esc(IG_HANDLE)}</text>`;
+  const footer =
+    rank === 1
+      ? `<text x="${M}" y="1262" font-family="${T.body}" font-weight="800" font-size="28" fill="${T.accent}">→ 5개 다 넘겨보기</text>${handle}`
+      : handle;
 
   // 1번 카드에만 어그로 후킹 문구
   const hookLines = rank === 1 && draft.hook ? wrap(displaySafe(draft.hook), 15, 2, "") : [];
@@ -122,12 +121,31 @@ ${footer}
   );
 }
 
+function outroSvg() {
+  return shell(
+    `
+<text x="${M}" y="160" font-family="${T.body}" font-weight="800" font-size="30" letter-spacing="8" fill="${T.accent}">FOLLOW</text>
+
+<text x="${M}" y="560" font-family="${T.displayStack}" font-size="98" fill="${T.ink}">팔로우하고</text>
+<text x="${M}" y="685" font-family="${T.displayStack}" font-size="98" fill="${T.ink}">매일 다양한 이슈</text>
+<text x="${M}" y="810" font-family="${T.displayStack}" font-size="98" fill="${T.accent}">확인하세요</text>
+
+<rect x="${M}" y="900" width="150" height="14" fill="${T.accent}"/>
+
+<text x="${M}" y="1200" font-family="${T.body}" font-weight="800" font-size="46" fill="${T.ink}">${esc(IG_HANDLE)}</text>
+<text x="${M}" y="1258" font-family="${T.body}" font-weight="600" font-size="28" fill="${T.sub}">매일 저녁 7시 · 소비·트렌드 이슈 5</text>
+`,
+    null
+  );
+}
+
 export async function buildCardSvgs(draft) {
   const issues = (draft.issues ?? []).slice(0, 5);
   const out = [];
   for (let i = 0; i < issues.length; i++) {
-    out.push(await issueSvg(issues[i], i + 1, draft, i === issues.length - 1));
+    out.push(await issueSvg(issues[i], i + 1, draft));
   }
+  out.push(outroSvg());
   return out;
 }
 

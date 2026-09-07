@@ -15,18 +15,19 @@ test("wrap: 최대 글자수/줄수 지키고 초과분은 …", () => {
   assert.ok(two[1].endsWith("…"));
 });
 
-test("buildCardSvgs: 이슈 5개 = 카드 5장 (커버 없음), 1번은 헤드라인+후킹", async () => {
+test("buildCardSvgs: 이슈 5 + 아웃트로 = 6장, 1번은 헤드라인+후킹", async () => {
   const svgs = await buildCardSvgs({ ...draft, hook: "아직도 이거 안 함?" });
-  assert.equal(svgs.length, 5);
+  assert.equal(svgs.length, 6); // 이슈 5 + 팔로우 아웃트로
   assert.ok(svgs[0].includes("제로 슈거 소주")); // 1번 카드 = 1번 이슈
   assert.ok(svgs[0].includes("아직도 이거 안 함")); // 후킹 문구
   assert.ok(!svgs[1].includes("아직도 이거 안 함")); // 후킹은 1번만
+  assert.ok(svgs[5].includes("팔로우하고")); // 마지막은 아웃트로
   assert.ok(svgs.every((s) => s.startsWith("<svg") && s.includes("</svg>")));
 });
 
-test("buildCardSvgs: 이슈 3개면 3장", async () => {
+test("buildCardSvgs: 이슈 3개면 4장 (+아웃트로)", async () => {
   const d = { ...draft, issues: draft.issues.slice(0, 3) };
-  assert.equal((await buildCardSvgs(d)).length, 3);
+  assert.equal((await buildCardSvgs(d)).length, 4);
 });
 
 test("renderCards + renderReelFrames + renderReel: 실제 PNG/MP4 산출 (느림)", async () => {
@@ -34,7 +35,7 @@ test("renderCards + renderReelFrames + renderReel: 실제 PNG/MP4 산출 (느림
   await rm(dir, { recursive: true, force: true });
 
   const cards = await renderCards(draft, dir);
-  assert.equal(cards.length, 5);
+  assert.equal(cards.length, 6);
   for (const p of cards) {
     const buf = await readFile(p);
     assert.ok(buf.length > 5000, `${p} 가 너무 작음`);
@@ -42,7 +43,7 @@ test("renderCards + renderReelFrames + renderReel: 실제 PNG/MP4 산출 (느림
   }
 
   const frames = await renderReelFrames(draft, dir);
-  assert.equal(frames.length, 5);
+  assert.equal(frames.length, 6);
 
   const reel = await renderReel(frames, dir);
   const s = await stat(reel);

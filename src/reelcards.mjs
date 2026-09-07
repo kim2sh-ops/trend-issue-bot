@@ -72,6 +72,18 @@ async function issueFrame(issue, rank, draft) {
   );
 }
 
+function outroFrame() {
+  return shell(
+    `<text x="${M}" y="720" font-family="${T.body}" font-weight="800" font-size="34" letter-spacing="8" fill="${T.accent}">FOLLOW</text>
+<text x="${M}" y="880" font-family="${T.displayStack}" font-size="108" fill="${T.ink}">팔로우하고</text>
+<text x="${M}" y="1010" font-family="${T.displayStack}" font-size="108" fill="${T.ink}">매일 다양한 이슈</text>
+<text x="${M}" y="1140" font-family="${T.displayStack}" font-size="108" fill="${T.accent}">확인하세요</text>
+<text x="${M}" y="1280" font-family="${T.body}" font-weight="800" font-size="40" fill="${T.ink}">${esc(IG_HANDLE)}</text>
+<text x="${M}" y="1336" font-family="${T.body}" font-weight="600" font-size="28" fill="${T.sub}">매일 저녁 7시 · 소비·트렌드 이슈 5</text>`,
+    null
+  );
+}
+
 // 스토리용 티저 이미지 1장 (피드 카드뉴스로 유도)
 async function storyFrame(draft) {
   const uri = draft.coverImage ? await dataUri(draft.coverImage) : null;
@@ -105,6 +117,7 @@ export async function renderReelFrames(draft, outDir) {
   const issues = (draft.issues ?? []).slice(0, 5);
   const svgs = [];
   for (let i = 0; i < issues.length; i++) svgs.push(await issueFrame(issues[i], i + 1, draft));
+  svgs.push(outroFrame());
 
   const paths = [];
   for (let i = 0; i < svgs.length; i++) {
