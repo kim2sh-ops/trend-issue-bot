@@ -22,7 +22,8 @@ export const T = {
   accent: "#5B8CFF", // 다크 배경에서 잘 보이는 밝은 블루
   onAccent: "#0E1220",
   line: "#2B3450",
-  display: "Black Han Sans",
+  display: "Black Han Sans", // 제목용 (한글 상용 2350자 커버)
+  displayStack: "Black Han Sans, Gothic A1", // Black Han Sans 에 없는 글자/기호는 Gothic A1 로 폴백
   body: "Gothic A1",
 };
 

@@ -4,21 +4,30 @@ import { join } from "node:path";
 const KEY = process.env.PEXELS_API_KEY;
 
 // Pexels 에서 세로 이미지 1장을 받아 로컬에 저장. 키 없거나 실패하면 null (카드가 이미지 없이 렌더됨).
+async function search(query, orientation) {
+  const q = new URLSearchParams({ query, per_page: "8", size: "medium" });
+  if (orientation) q.set("orientation", orientation);
+  const r = await fetch(`https://api.pexels.com/v1/search?${q}`, {
+    headers: { Authorization: KEY },
+    signal: AbortSignal.timeout(15000),
+  });
+  return r.ok ? (await r.json()).photos ?? [] : [];
+}
+
 export async function fetchImage(query, dir, tag, w = 1080, h = 1350) {
   if (!KEY || !query) return null;
   await mkdir(dir, { recursive: true });
   const out = join(dir, `img-${tag}.jpg`);
   try {
-    const r = await fetch(
-      `https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&per_page=1&orientation=portrait&size=medium`,
-      { headers: { Authorization: KEY }, signal: AbortSignal.timeout(15000) }
-    );
-    if (!r.ok) return null;
-    const photo = (await r.json()).photos?.[0];
+    // 세로 사진 우선, 없으면 방향 무시하고 중앙 크롭
+    let photos = await search(query, "portrait");
+    if (!photos.length) photos = await search(query, null);
+    // 너무 가로로 긴 사진은 크롭하면 주제가 잘리므로 뒤로 미룬다
+    photos.sort((a, b) => a.width / a.height - b.width / b.height);
+    const photo = photos[0];
     if (!photo) return null;
 
-    const base = photo.src.large2x.split("?")[0];
-    const url = `${base}?auto=compress&cs=tinysrgb&fit=crop&w=${w}&h=${h}`;
+    const url = `${photo.src.large2x.split("?")[0]}?auto=compress&cs=tinysrgb&fit=crop&w=${w}&h=${h}`;
     const img = await fetch(url, { signal: AbortSignal.timeout(20000) });
     if (!img.ok) return null;
 

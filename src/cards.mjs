@@ -6,8 +6,19 @@ import { dataUri } from "./images.mjs";
 
 const esc = (s) => String(s ?? "").replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]);
 
-// 글자수 기준 줄바꿈. 공백 우선, 없으면 강제 절단.
-export function wrap(text, maxChars, maxLines = 99) {
+// Black Han Sans(제목용)에 없는 기호는 whole-run 폴백을 유발하므로 미리 치환한다.
+const displaySafe = (s) =>
+  String(s ?? "")
+    .replace(/[·・]/g, ", ")
+    .replace(/[–—]/g, "-")
+    .replace(/[""]/g, '"')
+    .replace(/['']/g, "'")
+    .replace(/…/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+// 글자수 기준 줄바꿈. 공백 우선, 없으면 강제 절단. ell="" 이면 넘침 표시 생략(제목용).
+export function wrap(text, maxChars, maxLines = 99, ell = "…") {
   let rest = String(text ?? "").trim();
   const lines = [];
   while (rest.length && lines.length < maxLines) {
@@ -22,7 +33,7 @@ export function wrap(text, maxChars, maxLines = 99) {
     rest = rest.slice(cut).trim();
   }
   if (rest.length && lines.length) {
-    lines[lines.length - 1] = lines[lines.length - 1].slice(0, maxChars - 1).trim() + "…";
+    lines[lines.length - 1] = lines[lines.length - 1].slice(0, maxChars - ell.length).trim() + ell;
   }
   return lines;
 }
@@ -40,9 +51,9 @@ function shell(bodyInner, imgUri) {
   return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${CARD.w}" height="${CARD.h}" viewBox="0 0 ${CARD.w} ${CARD.h}">
 <defs>
   <linearGradient id="scrim" x1="0" y1="0" x2="0" y2="1">
-    <stop offset="0" stop-color="${T.bg}" stop-opacity="0.30"/>
-    <stop offset="0.40" stop-color="${T.bg}" stop-opacity="0.40"/>
-    <stop offset="0.60" stop-color="${T.bg}" stop-opacity="0.92"/>
+    <stop offset="0" stop-color="${T.bg}" stop-opacity="0.42"/>
+    <stop offset="0.38" stop-color="${T.bg}" stop-opacity="0.48"/>
+    <stop offset="0.58" stop-color="${T.bg}" stop-opacity="0.94"/>
     <stop offset="1" stop-color="${T.bg}" stop-opacity="1"/>
   </linearGradient>
 </defs>
@@ -60,9 +71,9 @@ async function coverSvg(draft) {
 <text x="${M}" y="150" font-family="${T.body}" font-weight="800" font-size="30" letter-spacing="6" fill="${T.accent}">TREND · CONSUMER</text>
 <text x="${CARD.w - M}" y="150" text-anchor="end" font-family="${T.body}" font-weight="700" font-size="30" fill="${T.sub}">${esc(draft.date ?? "")}</text>
 
-<text x="${M}" y="890" font-family="${T.display}" font-size="112" fill="${T.ink}">오늘의</text>
-<text x="${M}" y="1010" font-family="${T.display}" font-size="112" fill="${T.ink}">소비 트렌드</text>
-<text x="${M}" y="1148" font-family="${T.display}" font-size="146" fill="${T.accent}">이슈 5</text>
+<text x="${M}" y="890" font-family="${T.displayStack}" font-size="112" fill="${T.ink}">오늘의</text>
+<text x="${M}" y="1010" font-family="${T.displayStack}" font-size="112" fill="${T.ink}">소비 트렌드</text>
+<text x="${M}" y="1148" font-family="${T.displayStack}" font-size="146" fill="${T.accent}">이슈 5</text>
 
 <text x="${M}" y="1250" font-family="${T.body}" font-weight="700" font-size="27" fill="${T.sub}">밀어서 5개 모두 보기 →</text>
 <text x="${CARD.w - M}" y="1250" text-anchor="end" font-family="${T.body}" font-weight="800" font-size="27" fill="${T.ink}">${esc(IG_HANDLE)}</text>
@@ -73,44 +84,44 @@ async function coverSvg(draft) {
 
 async function issueSvg(issue, rank, draft, isLast) {
   const uri = issue.image ? await dataUri(issue.image) : null;
-  const head = wrap(issue.headline ?? "", 17, 3);
+  const head = wrap(displaySafe(issue.headline), 17, 3, "");
 
-  const headTop = 610;
-  const headLH = 72;
-  const ruleY = headTop + headLH * (head.length - 1) + 40;
+  const headTop = 560;
+  const headLH = 70;
+  const ruleY = headTop + headLH * (head.length - 1) + 38;
 
   // 우선순위: 헤드라인 → why_trend(훅) → 요약. 아래 여백 예산 안에서만 채운다.
-  let y = ruleY + 62;
+  let y = ruleY + 58;
   let body = "";
 
   if (issue.why_trend) {
     const wt = wrap(issue.why_trend, 21, 2);
-    body += `<rect x="${M}" y="${y - 34}" width="8" height="${43 * wt.length}" fill="${T.accent}"/>`;
-    body += `<text x="${M + 30}" y="${y}" font-family="${T.body}" font-weight="800" font-size="31" letter-spacing="-0.5" fill="${T.ink}">${tspans(wt, M + 30, 43)}</text>`;
-    y += 43 * wt.length + 40;
+    body += `<rect x="${M}" y="${y - 33}" width="8" height="${42 * wt.length}" fill="${T.accent}"/>`;
+    body += `<text x="${M + 30}" y="${y}" font-family="${T.body}" font-weight="800" font-size="30" letter-spacing="-0.5" fill="${T.ink}">${tspans(wt, M + 30, 42)}</text>`;
+    y += 42 * wt.length + 36;
   }
 
-  const BUDGET = 1150;
-  for (const s of issue.summary ?? []) {
-    const w = wrap(s, 25, 2);
-    const need = 43 * w.length + 24;
+  const BUDGET = 1195;
+  for (const s of (issue.summary ?? []).slice(0, 3)) {
+    const w = wrap(s, 26, 2);
+    const need = 42 * w.length + 22;
     if (y + need > BUDGET) break;
-    body += `<text x="${M}" y="${y}" font-family="${T.body}" font-weight="600" font-size="29" letter-spacing="-0.5" fill="${T.sub}">${tspans(w, M, 43)}</text>`;
+    body += `<text x="${M}" y="${y}" font-family="${T.body}" font-weight="600" font-size="28" letter-spacing="-0.5" fill="${T.sub}">${tspans(w, M, 42)}</text>`;
     y += need;
   }
 
   const src = (issue.sources ?? []).join(", ") || "출처 미상";
-  const srcY = Math.min(Math.max(y + 34, 1150), 1192);
+  const srcY = Math.min(Math.max(y + 30, 1150), 1198);
   const footer = isLast
     ? `<text x="${M}" y="1262" font-family="${T.body}" font-weight="800" font-size="28" fill="${T.ink}">저장하고 팔로우 <tspan fill="${T.accent}">${esc(IG_HANDLE)}</tspan></text>`
     : `<text x="${CARD.w - M}" y="1262" text-anchor="end" font-family="${T.body}" font-weight="800" font-size="25" fill="${T.sub}">${esc(IG_HANDLE)}</text>`;
 
   return shell(
     `
-<text x="${M}" y="250" font-family="${T.display}" font-size="140" fill="${T.accent}">${String(rank).padStart(2, "0")}</text>
+<text x="${M}" y="250" font-family="${T.displayStack}" font-size="140" fill="${T.accent}">${String(rank).padStart(2, "0")}</text>
 <text x="${CARD.w - M}" y="150" text-anchor="end" font-family="${T.body}" font-weight="700" font-size="25" fill="${T.sub}">오늘의 소비 트렌드 · ${esc(draft.date ?? "")}</text>
 
-<text x="${M}" y="${headTop}" font-family="${T.display}" font-size="53" fill="${T.ink}">${tspans(head, M, headLH)}</text>
+<text x="${M}" y="${headTop}" font-family="${T.displayStack}" font-size="53" fill="${T.ink}">${tspans(head, M, headLH)}</text>
 <rect x="${M}" y="${ruleY}" width="${CARD.w - 2 * M}" height="3" fill="${T.line}"/>
 ${body}
 <text x="${M}" y="${srcY}" font-family="${T.body}" font-weight="800" font-size="26" fill="${T.accent}">출처 · ${esc(src)}</text>

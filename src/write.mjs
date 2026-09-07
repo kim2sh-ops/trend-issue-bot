@@ -21,10 +21,10 @@ const FORMAT = `아래 JSON 객체 하나만 출력한다. 코드펜스도 다�
     {
       "rank": 1,
       "headline": "카드뉴스용 제목, 한국어 22자 이하 (넘기지 말 것)",
-      "summary": ["요약 문장 1 (35자 이하)", "요약 문장 2 (35자 이하)"],
+      "summary": ["요약 문장 1 (32자 이하)", "요약 문장 2 (32자 이하)", "요약 문장 3 (32자 이하)"],
       "why_trend": "왜 2030이 지금 관심 갖는지 한 문장 (30자 이하)",
       "reel_line": "릴스에 띄울 핵심 한 줄. 15자 이하. 임팩트 있게",
-      "image_query": "이 이슈 배경 사진 검색어. 영어 2~4단어. 사람 얼굴/특정 브랜드 로고 없는 일반적 장면 (예: soju bottles store, stock market chart, running shoes)",
+      "image_query": "이 이슈를 대표하는 사진 검색어. 영어. 한 가지 구체적인 사물·장면만 (추상 개념·사람 얼굴·브랜드 로고 금지). 사진만 봐도 무슨 주제인지 바로 알 수 있어야 함. 예: 'green soju bottles', 'stock ticker board', 'running shoes on track', 'cosmetics store shelf', 'korean won banknotes'",
       "sources": ["언론사명"],
       "confidence": "high|medium|low"
     }
