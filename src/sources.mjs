@@ -6,9 +6,13 @@ export const FEEDS = [
   { name: "연합뉴스 경제", url: "https://www.yna.co.kr/rss/economy.xml", type: "rss" },
   { name: "연합뉴스 산업", url: "https://www.yna.co.kr/rss/industry.xml", type: "rss" },
   { name: "연합뉴스 문화", url: "https://www.yna.co.kr/rss/culture.xml", type: "rss" },
+  { name: "연합뉴스 연예", url: "https://www.yna.co.kr/rss/entertainment.xml", type: "rss" },
+  { name: "연합뉴스 생활", url: "https://www.yna.co.kr/rss/society.xml", type: "rss" },
+  { name: "연합뉴스 세계", url: "https://www.yna.co.kr/rss/international.xml", type: "rss" },
+  { name: "이티뉴스 IT·과학", url: "https://rss.etnews.com/Section901.xml", type: "rss" },
 ];
 
-const RSS_PER_FEED = 30; // 피드당 최근 몇 건까지 재료로 쓸지
+const RSS_PER_FEED = 20; // 피드당 최근 몇 건까지 재료로 쓸지
 
 const parser = new XMLParser({ ignoreAttributes: true, cdataPropName: "__cdata" });
 

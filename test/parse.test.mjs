@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { parseTrends, parseRss } from "../src/sources.mjs";
-import { parseJson } from "../src/write.mjs";
+import { parseJson, dropUnsafe } from "../src/write.mjs";
 import { __test as tg } from "../src/telegram.mjs";
 
 const TRENDS_XML = `<?xml version="1.0"?>
@@ -58,6 +58,17 @@ test("parseJson: 코드펜스/잡텍스트에 싸인 JSON도 파싱", () => {
 
 test("parseJson: JSON 없으면 에러", () => {
   assert.throws(() => parseJson("죄송합니다 만들 수 없습니다"), /JSON을 찾지 못함/);
+});
+
+test("dropUnsafe: 정보유출·사건사고 이슈 제거, 소비 이슈 유지", () => {
+  const issues = [
+    { headline: "올리브영 3분기 매출 최대", summary: ["역대 최대"], why_trend: "H&B 이동" },
+    { headline: "강남언니 22만명 개인정보 유출", summary: ["미용시술 기록까지"], why_trend: "보안 우려" },
+    { headline: "제로 소주 판매 급증", summary: ["저칼로리 인기"], why_trend: "다이어트" },
+    { headline: "유명 배우 A씨 열애 인정", summary: ["소속사 확인"], why_trend: "화제" },
+  ];
+  const kept = dropUnsafe(issues);
+  assert.deepEqual(kept.map((i) => i.headline), ["올리브영 3분기 매출 최대", "제로 소주 판매 급증"]);
 });
 
 test("telegram.chunk: 길이 제한으로 분할하되 줄은 안 쪼갬", () => {

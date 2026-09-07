@@ -25,7 +25,7 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           IG_HANDLE: ${{ secrets.IG_HANDLE }}
           PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
-          CLAUDE_MODEL: claude-haiku-4-5
+          CLAUDE_MODEL: claude-sonnet-5
           PAGES_BASE: https://kim2sh-ops.github.io/trend-issue-bot
 
       - name: 에셋 스테이징

@@ -1,14 +1,28 @@
 import Anthropic from "@anthropic-ai/sdk";
 
-const MODEL = process.env.CLAUDE_MODEL || "claude-haiku-4-5";
+const MODEL = process.env.CLAUDE_MODEL || "claude-sonnet-5";
+
+// 프롬프트가 놓친 광고 부적합 이슈를 코드에서 한 번 더 거른다 (안전망).
+const BANNED =
+  /유출|해킹|피싱|스캠|사망|숨진|숨져|숨졌|부고|빈소|자살|극단적 선택|구속|기소|송치|압수수색|선고|피의자|성범죄|성폭행|성추행|마약|음주운전|열애|결별|불륜|이혼|폭행|참사|국정감사|탄핵|대통령|장관|의원/;
+
+export function dropUnsafe(issues) {
+  return (issues ?? []).filter((it) => {
+    const blob = [it.headline, it.why_trend, ...(it.summary ?? [])].join(" ");
+    return !BANNED.test(blob);
+  });
+}
 
 const SYSTEM = `너는 한국 2030 세대를 겨냥한 '트렌드·소비' 인스타그램 카드뉴스 계정의 에디터다.
-주어진 오늘의 검색 트렌드와 뉴스 헤드라인만 근거로, 소비·라이프스타일·유통·브랜드·문화·재테크 관점에서
-오늘 가장 이야기할 만한 이슈를 최대 5개 고른다.
+주어진 오늘의 검색 트렌드와 뉴스 헤드라인(경제·산업·문화·연예·생활·세계·IT·과학)만 근거로,
+소비·라이프스타일·유통·브랜드·트렌드·재테크·테크 관점에서 오늘 가장 이야기할 만한 이슈를 최대 5개 고른다.
 
 엄격한 규칙:
 - 제공된 자료에 없는 사실·수치·발언은 절대 만들지 마라. 근거가 약하면 confidence를 낮춰라.
-- 정치인 인사·사건사고·부고·젠더 갈등 등 광고 부적합 주제는 제외한다. 소비·트렌드 각도가 없으면 버려라.
+- 다음은 무조건 제외 (광고 부적합): 정치인·정당·선거, 사건사고·범죄·재판·수사, 사망·부고·자살,
+  해킹·정보유출·보이스피싱 피해, 재난·사고, 젠더·이념 갈등, 전쟁·분쟁, 연예인 스캔들·열애·결별·논란.
+- 남기는 건 "돈 쓰는 이야기": 신제품·가격·할인·유통 변화, 소비 습관 변화, 새 서비스·앱·기기,
+  재테크·투자 흐름, 유행하는 취미·문화 소비, 브랜드·플랫폼 동향.
 - 좋은 재료가 5개가 안 되면 있는 만큼만 반환하라. 억지로 개수를 채우지 마라.
 - 단정 금지: "~로 밝혀졌다" 대신 "~라고 보도됐다".
 - 모든 문장은 한국어. 낚시성 과장 금지.`;
@@ -80,5 +94,12 @@ export async function writeDraft(material) {
   if (!Array.isArray(draft.issues) || draft.issues.length === 0) {
     throw new Error("초안에 issues 가 비어 있음:\n" + responseText.slice(0, 600));
   }
-  return { draft, usage: msg.usage, model: msg.model };
+
+  const kept = dropUnsafe(draft.issues);
+  const dropped = draft.issues.length - kept.length;
+  if (dropped) console.warn(`[필터] 광고 부적합 이슈 ${dropped}건 제외`);
+  draft.issues = kept.map((it, i) => ({ ...it, rank: i + 1 }));
+  if (draft.issues.length === 0) throw new Error("필터 후 남은 이슈 없음");
+
+  return { draft, usage: msg.usage, model: msg.model, dropped };
 }
