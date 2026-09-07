@@ -47,19 +47,7 @@ ${inner}
 
 const M = 110;
 
-async function coverFrame(draft) {
-  const uri = draft.coverImage ? await dataUri(draft.coverImage) : null;
-  return shell(
-    `<text x="${M}" y="760" font-family="${T.body}" font-weight="800" font-size="34" letter-spacing="7" fill="${T.accent}">${esc(draft.date ?? "")}</text>
-<text x="${M}" y="900" font-family="${T.displayStack}" font-size="120" fill="${T.ink}">오늘의</text>
-<text x="${M}" y="1030" font-family="${T.displayStack}" font-size="120" fill="${T.ink}">소비 트렌드</text>
-<text x="${M}" y="1190" font-family="${T.displayStack}" font-size="170" fill="${T.accent}">이슈 5</text>
-<text x="${M}" y="1320" font-family="${T.body}" font-weight="800" font-size="30" fill="${T.sub}">${esc(IG_HANDLE)}</text>`,
-    uri
-  );
-}
-
-async function issueFrame(issue, rank) {
+async function issueFrame(issue, rank, draft) {
   const uri = issue.image ? await dataUri(issue.image) : null;
   const head = wrap(displaySafe(issue.headline), 13, 3, "");
   const line = wrap(issue.reel_line || issue.why_trend || "", 20, 2);
@@ -67,8 +55,15 @@ async function issueFrame(issue, rank) {
   const headY = 660;
   const afterHead = headY + 108 * (head.length - 1);
 
+  // 1번 프레임엔 어그로 후킹 문구 (스크롤 멈추게), 번호는 생략
+  const hookLines = rank === 1 && draft?.hook ? wrap(displaySafe(draft.hook), 11, 3, "") : [];
+  const marker = hookLines.length
+    ? `<rect x="${M}" y="200" width="90" height="12" fill="${T.accent}"/>
+       <text x="${M}" y="345" font-family="${T.displayStack}" font-size="94" fill="${T.accent}">${tspans(hookLines, M, 116)}</text>`
+    : `<text x="${M}" y="430" font-family="${T.displayStack}" font-size="200" fill="${T.accent}">${String(rank).padStart(2, "0")}</text>`;
+
   return shell(
-    `<text x="${M}" y="430" font-family="${T.displayStack}" font-size="220" fill="${T.accent}">${String(rank).padStart(2, "0")}</text>
+    `${marker}
 <text x="${M}" y="${headY}" font-family="${T.displayStack}" font-size="88" fill="${T.ink}">${tspans(head, M, 108)}</text>
 <rect x="${M}" y="${afterHead + 66}" width="120" height="10" fill="${T.accent}"/>
 <text x="${M}" y="${afterHead + 200}" font-family="${T.body}" font-weight="800" font-size="46" letter-spacing="-0.5" fill="${T.ink}">${tspans(line, M, 62)}</text>
@@ -108,8 +103,8 @@ export async function renderStory(draft, outDir) {
 export async function renderReelFrames(draft, outDir) {
   await mkdir(outDir, { recursive: true });
   const issues = (draft.issues ?? []).slice(0, 5);
-  const svgs = [await coverFrame(draft)];
-  for (let i = 0; i < issues.length; i++) svgs.push(await issueFrame(issues[i], i + 1));
+  const svgs = [];
+  for (let i = 0; i < issues.length; i++) svgs.push(await issueFrame(issues[i], i + 1, draft));
 
   const paths = [];
   for (let i = 0; i < svgs.length; i++) {

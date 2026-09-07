@@ -63,25 +63,6 @@ ${bodyInner}
 </svg>`;
 }
 
-async function coverSvg(draft) {
-  const uri = draft.coverImage ? await dataUri(draft.coverImage) : null;
-  const teaser = wrap(draft.issues?.[0]?.headline ?? "", 18, 2);
-  return shell(
-    `
-<text x="${M}" y="150" font-family="${T.body}" font-weight="800" font-size="30" letter-spacing="6" fill="${T.accent}">TREND · CONSUMER</text>
-<text x="${CARD.w - M}" y="150" text-anchor="end" font-family="${T.body}" font-weight="700" font-size="30" fill="${T.sub}">${esc(draft.date ?? "")}</text>
-
-<text x="${M}" y="890" font-family="${T.displayStack}" font-size="112" fill="${T.ink}">오늘의</text>
-<text x="${M}" y="1010" font-family="${T.displayStack}" font-size="112" fill="${T.ink}">소비 트렌드</text>
-<text x="${M}" y="1148" font-family="${T.displayStack}" font-size="146" fill="${T.accent}">이슈 5</text>
-
-<text x="${M}" y="1250" font-family="${T.body}" font-weight="700" font-size="27" fill="${T.sub}">밀어서 5개 모두 보기 →</text>
-<text x="${CARD.w - M}" y="1250" text-anchor="end" font-family="${T.body}" font-weight="800" font-size="27" fill="${T.ink}">${esc(IG_HANDLE)}</text>
-`,
-    uri
-  );
-}
-
 async function issueSvg(issue, rank, draft, isLast) {
   const uri = issue.image ? await dataUri(issue.image) : null;
   const head = wrap(displaySafe(issue.headline), 17, 3, "");
@@ -114,13 +95,23 @@ async function issueSvg(issue, rank, draft, isLast) {
   const srcY = Math.min(Math.max(y + 30, 1150), 1198);
   const footer = isLast
     ? `<text x="${M}" y="1262" font-family="${T.body}" font-weight="800" font-size="28" fill="${T.ink}">저장하고 팔로우 <tspan fill="${T.accent}">${esc(IG_HANDLE)}</tspan></text>`
+    : rank === 1
+    ? `<text x="${M}" y="1262" font-family="${T.body}" font-weight="800" font-size="28" fill="${T.accent}">→ 5개 다 넘겨보기</text>
+       <text x="${CARD.w - M}" y="1262" text-anchor="end" font-family="${T.body}" font-weight="800" font-size="25" fill="${T.sub}">${esc(IG_HANDLE)}</text>`
     : `<text x="${CARD.w - M}" y="1262" text-anchor="end" font-family="${T.body}" font-weight="800" font-size="25" fill="${T.sub}">${esc(IG_HANDLE)}</text>`;
+
+  // 1번 카드에만 어그로 후킹 문구
+  const hookLines = rank === 1 && draft.hook ? wrap(displaySafe(draft.hook), 15, 2, "") : [];
+  const hook = hookLines.length
+    ? `<rect x="${M}" y="330" width="90" height="10" fill="${T.accent}"/>
+       <text x="${M}" y="430" font-family="${T.displayStack}" font-size="64" fill="${T.accent}">${tspans(hookLines, M, 76)}</text>`
+    : "";
 
   return shell(
     `
 <text x="${M}" y="250" font-family="${T.displayStack}" font-size="140" fill="${T.accent}">${String(rank).padStart(2, "0")}</text>
 <text x="${CARD.w - M}" y="150" text-anchor="end" font-family="${T.body}" font-weight="700" font-size="25" fill="${T.sub}">오늘의 소비 트렌드 · ${esc(draft.date ?? "")}</text>
-
+${hook}
 <text x="${M}" y="${headTop}" font-family="${T.displayStack}" font-size="53" fill="${T.ink}">${tspans(head, M, headLH)}</text>
 <rect x="${M}" y="${ruleY}" width="${CARD.w - 2 * M}" height="3" fill="${T.line}"/>
 ${body}
@@ -133,7 +124,7 @@ ${footer}
 
 export async function buildCardSvgs(draft) {
   const issues = (draft.issues ?? []).slice(0, 5);
-  const out = [await coverSvg(draft)];
+  const out = [];
   for (let i = 0; i < issues.length; i++) {
     out.push(await issueSvg(issues[i], i + 1, draft, i === issues.length - 1));
   }
