@@ -16,21 +16,21 @@ const SYSTEM = `너는 한국 2030 세대를 겨냥한 '트렌드·소비' 인�
 const FORMAT = `아래 JSON 객체 하나만 출력한다. 코드펜스도 다른 설명도 붙이지 마라.
 {
   "date": "오늘 날짜 YYYY-MM-DD",
+  "cover_image_query": "표지 배경 사진 검색어. 영어 2~4단어. 이 날 주제를 아우르는 일반적 장면",
   "issues": [
     {
       "rank": 1,
       "headline": "카드뉴스용 제목, 한국어 22자 이하 (넘기지 말 것)",
-      "summary": ["요약 문장 1 (35자 이하)", "요약 문장 2 (35자 이하)", "요약 문장 3 (35자 이하)"],
-      "why_trend": "왜 2030이 지금 관심 갖는지 한 문장",
+      "summary": ["요약 문장 1 (35자 이하)", "요약 문장 2 (35자 이하)"],
+      "why_trend": "왜 2030이 지금 관심 갖는지 한 문장 (30자 이하)",
+      "reel_line": "릴스에 띄울 핵심 한 줄. 15자 이하. 임팩트 있게",
+      "image_query": "이 이슈 배경 사진 검색어. 영어 2~4단어. 사람 얼굴/특정 브랜드 로고 없는 일반적 장면 (예: soju bottles store, stock market chart, running shoes)",
       "sources": ["언론사명"],
       "confidence": "high|medium|low"
     }
   ],
   "caption": "인스타 캡션 2~3문장 + 저장 유도 한 마디",
-  "hashtags": ["#해시태그", "12~15개"],
-  "reels_script": [
-    { "scene": 1, "onscreen": "화면 자막", "narration": "자막 낭독/나레이션" }
-  ]
+  "hashtags": ["#해시태그", "12~15개"]
 }`;
 
 function buildMaterial({ trends, news }, today) {

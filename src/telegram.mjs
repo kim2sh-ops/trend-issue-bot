@@ -37,6 +37,7 @@ function render(draft, meta) {
     L.push(`${it.rank}. ${it.headline}  [${it.confidence ?? "?"}]`);
     for (const s of it.summary ?? []) L.push(`  · ${s}`);
     if (it.why_trend) L.push(`  ↳ ${it.why_trend}`);
+    if (it.reel_line) L.push(`  🎬 ${it.reel_line}`);
     L.push(`  출처: ${(it.sources ?? []).join(", ") || "미상"}`);
     L.push("");
   }
@@ -45,10 +46,9 @@ function render(draft, meta) {
   L.push(draft.caption ?? "");
   L.push("");
   L.push((draft.hashtags ?? []).join(" "));
-  L.push("");
-  L.push("── 릴스 스크립트 ──");
-  for (const sc of draft.reels_script ?? []) {
-    L.push(`${sc.scene}. [${sc.onscreen}] ${sc.narration}`);
+  if (draft._credits?.length) {
+    L.push("");
+    L.push(`이미지: ${draft._credits.join(", ")} / Pexels`);
   }
   return L.join("\n");
 }

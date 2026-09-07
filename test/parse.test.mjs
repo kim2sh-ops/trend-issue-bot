@@ -68,19 +68,22 @@ test("telegram.chunk: 길이 제한으로 분할하되 줄은 안 쪼갬", () =>
   assert.equal(parts.join("\n"), body);
 });
 
-test("telegram.render: 이슈/캡션/해시태그/릴스 포함", () => {
+test("telegram.render: 이슈/캡션/해시태그/릴스라인/이미지크레딧 포함", () => {
   const out = tg.render(
     {
       date: "2026-09-07",
-      issues: [{ rank: 1, headline: "올리브영 최대 매출", summary: ["a", "b"], why_trend: "c", sources: ["연합뉴스"], confidence: "high" }],
+      issues: [
+        { rank: 1, headline: "올리브영 최대 매출", summary: ["a", "b"], why_trend: "c", reel_line: "뷰티는 H&B로", sources: ["연합뉴스"], confidence: "high" },
+      ],
       caption: "캡션 내용",
       hashtags: ["#트렌드", "#소비"],
-      reels_script: [{ scene: 1, onscreen: "자막", narration: "낭독" }],
+      _credits: ["Jane Doe"],
     },
     { model: "claude-haiku-4-5", usage: { input_tokens: 100, output_tokens: 200 } }
   );
   assert.match(out, /1\. 올리브영 최대 매출/);
   assert.match(out, /캡션 내용/);
   assert.match(out, /#트렌드 #소비/);
-  assert.match(out, /1\. \[자막\] 낭독/);
+  assert.match(out, /🎬 뷰티는 H&B로/);
+  assert.match(out, /이미지: Jane Doe \/ Pexels/);
 });

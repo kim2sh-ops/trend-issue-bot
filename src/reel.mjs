@@ -7,8 +7,8 @@ import { REEL, T } from "./theme.mjs";
 // ffmpeg-static 바이너리가 없으면(CI 등) 시스템 ffmpeg 사용
 const ffmpegPath = ffmpegStatic && existsSync(ffmpegStatic) ? ffmpegStatic : "ffmpeg";
 
-const PER = 3.8; // 슬라이드당 노출 시간(초)
-const XF = 0.55; // 크로스페이드(초)
+const PER = 4.6; // 슬라이드당 노출 시간(초)
+const XF = 0.5; // 크로스페이드(초)
 
 // 카드 PNG들을 1080x1920 세로 슬라이드쇼 mp4로 이어붙인다 (무음, 크로스페이드).
 export async function renderReel(cardPaths, outDir) {
