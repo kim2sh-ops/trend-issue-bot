@@ -9,7 +9,7 @@ import { REEL, T } from "./theme.mjs";
 const ffmpegPath = ffmpegStatic && existsSync(ffmpegStatic) ? ffmpegStatic : "ffmpeg";
 
 const AUDIO_DIR = join(dirname(fileURLToPath(import.meta.url)), "..", "assets", "audio");
-const PER = 4.6; // 슬라이드당 노출 시간(초)
+const PER = 5.4; // 슬라이드당 노출 시간(초) — 설명 글 읽을 시간
 const XF = 0.5; // 크로스페이드(초)
 const MUSIC_VOL = 0.16; // 배경음 볼륨
 

@@ -50,24 +50,37 @@ const M = 110;
 async function issueFrame(issue, rank, draft) {
   const uri = issue.image ? await dataUri(issue.image) : null;
   const head = wrap(displaySafe(issue.headline), 13, 3, "");
-  const line = wrap(issue.reel_line || issue.why_trend || "", 20, 2);
+  const punch = wrap(issue.reel_line || issue.why_trend || "", 18, 2);
   const src = (issue.sources ?? []).join(", ");
-  const headY = 660;
-  const afterHead = headY + 108 * (head.length - 1);
 
   // 1번 프레임엔 어그로 후킹 문구 (스크롤 멈추게), 번호는 생략
-  const hookLines = rank === 1 && draft?.hook ? wrap(displaySafe(draft.hook), 11, 3, "") : [];
+  const hookLines = rank === 1 && draft?.hook ? wrap(displaySafe(draft.hook), 12, 2, "") : [];
   const marker = hookLines.length
-    ? `<rect x="${M}" y="200" width="90" height="12" fill="${T.accent}"/>
-       <text x="${M}" y="345" font-family="${T.displayStack}" font-size="94" fill="${T.accent}">${tspans(hookLines, M, 116)}</text>`
-    : `<text x="${M}" y="430" font-family="${T.displayStack}" font-size="200" fill="${T.accent}">${String(rank).padStart(2, "0")}</text>`;
+    ? `<rect x="${M}" y="210" width="90" height="12" fill="${T.accent}"/>
+       <text x="${M}" y="340" font-family="${T.displayStack}" font-size="82" fill="${T.accent}">${tspans(hookLines, M, 100)}</text>`
+    : `<text x="${M}" y="360" font-family="${T.displayStack}" font-size="170" fill="${T.accent}">${String(rank).padStart(2, "0")}</text>`;
+
+  const headY = hookLines.length ? 340 + 100 * hookLines.length + 130 : 560;
+  let y = headY;
+  let inner = `<text x="${M}" y="${y}" font-family="${T.displayStack}" font-size="82" fill="${T.ink}">${tspans(head, M, 100)}</text>`;
+  y += 100 * (head.length - 1) + 60;
+
+  inner += `<rect x="${M}" y="${y}" width="120" height="10" fill="${T.accent}"/>`;
+  y += 100;
+  inner += `<text x="${M}" y="${y}" font-family="${T.body}" font-weight="800" font-size="44" letter-spacing="-0.5" fill="${T.ink}">${tspans(punch, M, 58)}</text>`;
+  y += 58 * punch.length + 70;
+
+  for (const s of (issue.summary ?? []).slice(0, 3)) {
+    const w = wrap(s, 22, 2);
+    if (y + 52 * w.length > 1700) break;
+    inner += `<text x="${M}" y="${y}" font-family="${T.body}" font-weight="600" font-size="36" letter-spacing="-0.5" fill="${T.sub}">${tspans(w, M, 52)}</text>`;
+    y += 52 * w.length + 26;
+  }
 
   return shell(
     `${marker}
-<text x="${M}" y="${headY}" font-family="${T.displayStack}" font-size="88" fill="${T.ink}">${tspans(head, M, 108)}</text>
-<rect x="${M}" y="${afterHead + 66}" width="120" height="10" fill="${T.accent}"/>
-<text x="${M}" y="${afterHead + 200}" font-family="${T.body}" font-weight="800" font-size="46" letter-spacing="-0.5" fill="${T.ink}">${tspans(line, M, 62)}</text>
-<text x="${M}" y="1790" font-family="${T.body}" font-weight="700" font-size="30" fill="${T.sub}">출처 · ${esc(src)}</text>`,
+${inner}
+<text x="${M}" y="1830" font-family="${T.body}" font-weight="700" font-size="30" fill="${T.sub}">출처 · ${esc(src)}</text>`,
     uri
   );
 }
