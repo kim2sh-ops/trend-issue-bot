@@ -60,15 +60,17 @@ test("parseJson: JSON 없으면 에러", () => {
   assert.throws(() => parseJson("죄송합니다 만들 수 없습니다"), /JSON을 찾지 못함/);
 });
 
-test("dropUnsafe: 정보유출·사건사고 이슈 제거, 소비 이슈 유지", () => {
+test("dropUnsafe: 정보유출·사건사고·갑질·의혹 제거, 소비/규제 이슈 유지", () => {
   const issues = [
     { headline: "올리브영 3분기 매출 최대", summary: ["역대 최대"], why_trend: "H&B 이동" },
     { headline: "강남언니 22만명 개인정보 유출", summary: ["미용시술 기록까지"], why_trend: "보안 우려" },
     { headline: "제로 소주 판매 급증", summary: ["저칼로리 인기"], why_trend: "다이어트" },
     { headline: "유명 배우 A씨 열애 인정", summary: ["소속사 확인"], why_trend: "화제" },
+    { headline: "다이소, 납품업체 갑질 의혹 현장조사", summary: ["공정위 착수"], why_trend: "" },
+    { headline: "알리, 불량 셀러 강력 제재", summary: ["소비자 보호"], why_trend: "안심 쇼핑" },
   ];
-  const kept = dropUnsafe(issues);
-  assert.deepEqual(kept.map((i) => i.headline), ["올리브영 3분기 매출 최대", "제로 소주 판매 급증"]);
+  const kept = dropUnsafe(issues).map((i) => i.headline);
+  assert.deepEqual(kept, ["올리브영 3분기 매출 최대", "제로 소주 판매 급증", "알리, 불량 셀러 강력 제재"]);
 });
 
 test("telegram.chunk: 길이 제한으로 분할하되 줄은 안 쪼갬", () => {
