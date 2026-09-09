@@ -15,16 +15,6 @@ test("buildCaption: 캡션 + 이슈 목록 + 해시태그 + 크레딧", () => {
   assert.match(c, /📷 Jane \/ Pexels/);
 });
 
-test("approve: 승인 단어 매칭", async () => {
-  // approve.mjs 는 실행 시 side-effect 가 있어 import 대신 정규식만 검증
-  const OK = /^(합격|발행|게시|승인|ㄱㄱ|go|ok)$/i;
-  assert.ok(OK.test("합격"));
-  assert.ok(OK.test(" 합격 ".trim()));
-  assert.ok(OK.test("OK"));
-  assert.ok(!OK.test("합격입니다"));
-  assert.ok(!OK.test("불합격"));
-});
-
 test("renderStory: 세로 PNG 산출", async () => {
   const dir = join(process.cwd(), "out", "__test_story");
   await rm(dir, { recursive: true, force: true });

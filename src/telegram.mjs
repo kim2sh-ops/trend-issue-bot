@@ -103,6 +103,27 @@ export async function sendPhotos(paths, caption) {
   await call("sendMediaGroup", fd, true);
 }
 
+// 원본 화질 그대로 (인스타 업로드용). 사진 앨범과 달리 압축 안 됨.
+export async function sendDocs(paths, caption) {
+  const { chatId } = creds();
+  const fd = new FormData();
+  fd.set("chat_id", chatId);
+  fd.set(
+    "media",
+    JSON.stringify(
+      paths.slice(0, 10).map((_, i) => ({
+        type: "document",
+        media: `attach://d${i}`,
+        ...(i === 0 && caption ? { caption } : {}),
+      }))
+    )
+  );
+  for (let i = 0; i < Math.min(paths.length, 10); i++) {
+    fd.set(`d${i}`, await fileBlob(paths[i], "image/jpeg"), basename(paths[i]));
+  }
+  await call("sendMediaGroup", fd, true);
+}
+
 export async function sendVideo(path, caption) {
   const { chatId } = creds();
   const fd = new FormData();

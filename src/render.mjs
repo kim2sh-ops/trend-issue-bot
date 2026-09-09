@@ -29,12 +29,12 @@ export async function renderAll(draft) {
   const reelFrames = await renderReelFrames(draft, dir);
   const reel = await renderReel(reelFrames, dir);
 
-  // 인스타 업로드용 JPEG
+  // 인스타 업로드용 원본 JPEG (텔레그램 document 로 보냄)
   const cards = [];
   for (const p of cardsPng) cards.push(await toJpeg(p));
   const story = await toJpeg(storyPng);
 
-  return { dir, date, cards, cardsPng, story, reel, credits: draft._credits ?? [] };
+  return { dir, date, cardsPng, cardsJpg: cards, storyJpg: story, reel, credits: draft._credits ?? [] };
 }
 
 // 저장된 초안 JSON 으로 렌더만 다시:  node src/render.mjs out/2026-09-08/draft.json
@@ -45,5 +45,5 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     process.exit(1);
   }
   const r = await renderAll(JSON.parse(await readFile(file, "utf8")));
-  console.log(`카드 ${r.cards.length}장 + 스토리 + 릴스 → ${r.dir}`);
+  console.log(`카드 ${r.cardsPng.length}장 + 스토리 + 릴스 → ${r.dir}`);
 }
