@@ -4,3 +4,4 @@ node_modules/
 out/
 public/
 .DS_Store
+state/pending.json
